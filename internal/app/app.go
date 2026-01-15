@@ -266,6 +266,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.tasks = msg.tasks
 			m.distributeTasks()
+			// Refresh m.selected to reflect updated task data
+			m.selected = m.getSelectedTask()
 		}
 
 	case taskCreatedMsg:
