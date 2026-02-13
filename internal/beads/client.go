@@ -11,11 +11,15 @@ import (
 )
 
 // Client wraps the bd CLI commands
-type Client struct{}
+type Client struct {
+	bdCmd string
+}
 
 // NewClient creates a new beads client
-func NewClient() *Client {
-	return &Client{}
+func NewClient(bdCmd string) *Client {
+	return &Client{
+		bdCmd: bdCmd,
+	}
 }
 
 // IsInitialized checks if beads is initialized in current directory
@@ -26,7 +30,7 @@ func (c *Client) IsInitialized() bool {
 
 // Init initializes beads in current directory
 func (c *Client) Init() error {
-	cmd := exec.Command("bd", "init")
+	cmd := exec.Command(c.bdCmd, "init")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -38,7 +42,7 @@ func (c *Client) List(filters ...string) ([]models.Task, error) {
 	args := []string{"list", "--json"}
 	args = append(args, filters...)
 
-	out, err := exec.Command("bd", args...).Output()
+	out, err := exec.Command(c.bdCmd, args...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("bd list failed: %w", err)
 	}
@@ -60,7 +64,7 @@ func (c *Client) ListOpen() ([]models.Task, error) {
 func (c *Client) Ready() ([]models.Task, error) {
 	args := []string{"ready", "--json"}
 
-	out, err := exec.Command("bd", args...).Output()
+	out, err := exec.Command(c.bdCmd, args...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("bd ready failed: %w", err)
 	}
@@ -75,7 +79,7 @@ func (c *Client) Ready() ([]models.Task, error) {
 
 // Show returns details for a specific task
 func (c *Client) Show(id string) (*models.Task, error) {
-	out, err := exec.Command("bd", "show", id, "--json").Output()
+	out, err := exec.Command(c.bdCmd, "show", id, "--json").Output()
 	if err != nil {
 		return nil, fmt.Errorf("bd show failed: %w", err)
 	}
@@ -119,7 +123,7 @@ func (c *Client) Create(opts CreateOptions) (*models.Task, error) {
 		args = append(args, "-l", strings.Join(opts.Labels, ","))
 	}
 
-	out, err := exec.Command("bd", args...).Output()
+	out, err := exec.Command(c.bdCmd, args...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("bd create failed: %w", err)
 	}
@@ -166,7 +170,7 @@ func (c *Client) Update(id string, opts UpdateOptions) error {
 		args = append(args, "-d", opts.Description)
 	}
 
-	cmd := exec.Command("bd", args...)
+	cmd := exec.Command(c.bdCmd, args...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("bd update failed: %w", err)
 	}
@@ -181,7 +185,7 @@ func (c *Client) Close(id string, reason string) error {
 		args = append(args, "--reason", reason)
 	}
 
-	cmd := exec.Command("bd", args...)
+	cmd := exec.Command(c.bdCmd, args...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("bd close failed: %w", err)
 	}
@@ -191,7 +195,7 @@ func (c *Client) Close(id string, reason string) error {
 
 // Delete removes a task
 func (c *Client) Delete(id string) error {
-	cmd := exec.Command("bd", "delete", id, "--force")
+	cmd := exec.Command(c.bdCmd, "delete", id, "--force")
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("bd delete failed: %w", err)
 	}
