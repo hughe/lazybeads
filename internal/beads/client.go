@@ -201,7 +201,7 @@ func (c *Client) Close(id string, reason string) error {
 func (c *Client) ListEpics(limit int) ([]models.Task, error) {
 	args := []string{"list", "--type", "epic", "--json", "--all"}
 
-	out, err := exec.Command("bd", args...).Output()
+	out, err := exec.Command(c.bdCmd, args...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("bd list epics failed: %w", err)
 	}
