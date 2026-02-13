@@ -25,7 +25,10 @@ func main() {
 		return
 	}
 
-	client := beads.NewClient()
+	// Load config (ignore errors, use empty config if there is an error)
+	cfg, _ := config.Load()
+
+	client := beads.NewClient(cfg.BeadsCmd)
 
 	// Check if beads is initialized
 	if !client.IsInitialized() {
@@ -61,7 +64,7 @@ func main() {
 
 	// Create and run the TUI application
 	p := tea.NewProgram(
-		app.New(),
+		app.New(client, cfg),
 		tea.WithAltScreen(),
 		tea.WithMouseCellMotion(),
 	)
@@ -227,4 +230,7 @@ func showConfigStatus() {
 		fmt.Println("Custom Commands (0 loaded)")
 		fmt.Println("  (none)")
 	}
+
+	fmt.Println()
+	fmt.Printf("Beads Command: %s\n", cfg.BeadsCmd)
 }

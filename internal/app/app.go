@@ -105,8 +105,8 @@ type Model struct {
 
 	// Filter state
 	filterQuery string
-	searchMode  bool             // true when inline search is active
-	searchInput textinput.Model  // text input for inline search in status bar
+	searchMode  bool            // true when inline search is active
+	searchInput textinput.Model // text input for inline search in status bar
 
 	// Status message (flash notification)
 	statusMsg string
@@ -116,7 +116,7 @@ type Model struct {
 }
 
 // New creates a new application model
-func New() Model {
+func New(client *beads.Client, cfg *config.Config) Model {
 	// Initialize help
 	h := help.New()
 	h.ShowAll = false
@@ -156,8 +156,6 @@ func New() Model {
 	formDesc.Placeholder = "Add details, context, or acceptance criteria (optional)"
 	formDesc.CharLimit = 1000
 
-	// Load config (ignore errors, use empty config)
-	cfg, _ := config.Load()
 	var customCmds []config.CustomCommand
 	if cfg != nil {
 		customCmds = cfg.CustomCommands
@@ -168,7 +166,7 @@ func New() Model {
 	keys.CustomCommands = buildCustomCommandBindings(customCmds)
 
 	return Model{
-		client:          beads.NewClient(),
+		client:          client,
 		keys:            keys,
 		help:            h,
 		mode:            ViewList,

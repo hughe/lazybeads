@@ -10,6 +10,8 @@ import (
 // Config represents the application configuration
 type Config struct {
 	CustomCommands []CustomCommand `yaml:"customCommands"`
+	// The name of the beads binary to run.
+	BeadsCmd string `yaml:"beads_command"`
 }
 
 // CustomCommand represents a user-defined command
@@ -44,6 +46,11 @@ func Load() (*Config, error) {
 		if cfg.CustomCommands[i].Context == "" {
 			cfg.CustomCommands[i].Context = "list"
 		}
+	}
+
+	// Set default for BeadsCmd.
+	if cfg.BeadsCmd == "" {
+		cfg.BeadsCmd = "bd"
 	}
 
 	return &cfg, nil
