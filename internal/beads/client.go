@@ -197,6 +197,27 @@ func (c *Client) Close(id string, reason string) error {
 	return nil
 }
 
+// ListEpics returns up to limit most recent epics
+func (c *Client) ListEpics(limit int) ([]models.Task, error) {
+	args := []string{"list", "--type", "epic", "--json", "--all"}
+
+	out, err := exec.Command("bd", args...).Output()
+	if err != nil {
+		return nil, fmt.Errorf("bd list epics failed: %w", err)
+	}
+
+	var tasks []models.Task
+	if err := json.Unmarshal(out, &tasks); err != nil {
+		return nil, fmt.Errorf("failed to parse bd list output: %w", err)
+	}
+
+	if limit > 0 && len(tasks) > limit {
+		tasks = tasks[:limit]
+	}
+
+	return tasks, nil
+}
+
 // Delete removes a task
 func (c *Client) Delete(id string) error {
 	cmd := exec.Command(c.bdCmd, "delete", id, "--force")

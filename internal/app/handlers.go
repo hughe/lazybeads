@@ -82,6 +82,7 @@ func (m *Model) handleListKeys(msg tea.KeyMsg) tea.Cmd {
 		m.editing = false
 		m.mode = ViewForm
 		m.formTitle.Focus()
+		return m.loadEpics()
 
 	case key.Matches(msg, m.keys.Delete):
 		if task := m.getSelectedTask(); task != nil {
@@ -207,7 +208,12 @@ func (m *Model) handleFormKeys(msg tea.KeyMsg) tea.Cmd {
 		return m.submitForm()
 
 	case msg.String() == "enter":
-		// Enter submits from any field
+		if m.formFocus == 4 && !m.formParentManual {
+			optionCount := len(m.formParentEpics) + 2
+			if m.formParentIdx == optionCount-1 {
+				return nil
+			}
+		}
 		return m.submitForm()
 
 	case key.Matches(msg, m.keys.Tab):

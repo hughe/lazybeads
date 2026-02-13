@@ -50,6 +50,12 @@ type clipboardCopiedMsg struct {
 	err  error
 }
 
+// epicsLoadedMsg is sent when epics are loaded for the parent picker
+type epicsLoadedMsg struct {
+	epics []models.Task
+	err   error
+}
+
 // clearStatusMsg clears the status flash message
 type clearStatusMsg struct{}
 
@@ -69,5 +75,13 @@ func (m Model) loadTasks() tea.Cmd {
 		// Load all tasks so we can distribute them to the 3 panels
 		tasks, err := m.client.List("--all")
 		return tasksLoadedMsg{tasks: tasks, err: err}
+	}
+}
+
+// loadEpics creates a command to load recent epics for the parent picker
+func (m Model) loadEpics() tea.Cmd {
+	return func() tea.Msg {
+		epics, err := m.client.ListEpics(10)
+		return epicsLoadedMsg{epics: epics, err: err}
 	}
 }

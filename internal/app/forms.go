@@ -55,9 +55,30 @@ func (m *Model) updateForm(msg tea.Msg) tea.Cmd {
 			m.formType = types[idx]
 		}
 	case 4:
-		var cmd tea.Cmd
-		m.formParent, cmd = m.formParent.Update(msg)
-		cmds = append(cmds, cmd)
+		if m.formParentManual {
+			var cmd tea.Cmd
+			m.formParent, cmd = m.formParent.Update(msg)
+			cmds = append(cmds, cmd)
+		} else if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			// index 0 = "(none)", 1..N = epics, N+1 = "(enter manually)"
+			optionCount := len(m.formParentEpics) + 2
+			switch keyMsg.String() {
+			case "up", "k":
+				if m.formParentIdx > 0 {
+					m.formParentIdx--
+				}
+			case "down", "j":
+				if m.formParentIdx < optionCount-1 {
+					m.formParentIdx++
+				}
+			case "enter":
+				if m.formParentIdx == optionCount-1 {
+					m.formParentManual = true
+					m.formParent.SetValue("")
+					m.formParent.Focus()
+				}
+			}
+		}
 	}
 
 	return tea.Batch(cmds...)
@@ -69,6 +90,8 @@ func (m *Model) resetForm() {
 	m.formPriority = 2
 	m.formType = "feature"
 	m.formParent.SetValue("")
+	m.formParentIdx = 0
+	m.formParentManual = false
 	m.formFocus = 0
 	m.updateFormFocus()
 }
@@ -83,7 +106,9 @@ func (m *Model) updateFormFocus() {
 	case 1:
 		m.formDesc.Focus()
 	case 4:
-		m.formParent.Focus()
+		if m.formParentManual {
+			m.formParent.Focus()
+		}
 	}
 }
 
@@ -104,7 +129,12 @@ func (m *Model) submitForm() tea.Cmd {
 		}
 	}
 
-	parent := strings.TrimSpace(m.formParent.Value())
+	var parent string
+	if m.formParentManual {
+		parent = strings.TrimSpace(m.formParent.Value())
+	} else if m.formParentIdx > 0 && m.formParentIdx <= len(m.formParentEpics) {
+		parent = m.formParentEpics[m.formParentIdx-1].ID
+	}
 	return func() tea.Msg {
 		task, err := m.client.Create(beads.CreateOptions{
 			Title:       title,

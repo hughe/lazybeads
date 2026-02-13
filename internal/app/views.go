@@ -473,12 +473,42 @@ func (m Model) viewForm() string {
 
 	// Parent field
 	parentLabel := ui.FormLabelStyle.Render("Parent:")
-	parentStyle := ui.FormInputStyle
-	if m.formFocus == 4 {
-		parentStyle = ui.FormInputFocusedStyle
+	b.WriteString(parentLabel + "\n")
+	if m.formParentManual {
+		parentStyle := ui.FormInputStyle
+		if m.formFocus == 4 {
+			parentStyle = ui.FormInputFocusedStyle
+		}
+		parentInput := parentStyle.Width(m.width - 20).Render(m.formParent.View())
+		b.WriteString(parentInput + "\n\n")
+	} else {
+		focused := m.formFocus == 4
+		// Option 0: (none)
+		noneStyle := ui.HelpDescStyle
+		if m.formParentIdx == 0 && focused {
+			noneStyle = ui.SelectedTaskStyle
+		}
+		b.WriteString("  " + noneStyle.Render("(none)") + "\n")
+		// Epic options
+		for i, epic := range m.formParentEpics {
+			style := ui.HelpDescStyle
+			if m.formParentIdx == i+1 && focused {
+				style = ui.SelectedTaskStyle
+			}
+			label := fmt.Sprintf("%s  %s", epic.ID, epic.Title)
+			if len(label) > m.width-24 && m.width > 28 {
+				label = label[:m.width-27] + "..."
+			}
+			b.WriteString("  " + style.Render(label) + "\n")
+		}
+		// Manual entry option
+		manualStyle := ui.HelpDescStyle
+		if m.formParentIdx == len(m.formParentEpics)+1 && focused {
+			manualStyle = ui.SelectedTaskStyle
+		}
+		b.WriteString("  " + manualStyle.Render("(enter manually)") + "\n")
+		b.WriteString("\n")
 	}
-	parentInput := parentStyle.Width(m.width - 20).Render(m.formParent.View())
-	b.WriteString(parentLabel + "\n" + parentInput + "\n\n")
 
 	// Help
 	b.WriteString("\n")

@@ -92,8 +92,11 @@ type Model struct {
 	formDesc     textinput.Model
 	formPriority int
 	formType     string
-	formParent   textinput.Model
-	formFocus    int
+	formParent       textinput.Model
+	formParentEpics  []models.Task
+	formParentIdx    int
+	formParentManual bool
+	formFocus        int
 	editing      bool
 	editingID    string
 
@@ -329,6 +332,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Tick(statusFlashDuration, func(t time.Time) tea.Msg {
 				return clearStatusMsg{}
 			}))
+		}
+
+	case epicsLoadedMsg:
+		if msg.err == nil {
+			m.formParentEpics = msg.epics
 		}
 
 	case clearStatusMsg:
