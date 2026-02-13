@@ -199,7 +199,7 @@ func (c *Client) Close(id string, reason string) error {
 
 // ListEpics returns up to limit most recent epics
 func (c *Client) ListEpics(limit int) ([]models.Task, error) {
-	args := []string{"list", "--type", "epic", "--json", "--all"}
+	args := []string{"list", "--type", "epic", "--status", "open", "--json"}
 
 	out, err := exec.Command(c.bdCmd, args...).Output()
 	if err != nil {
