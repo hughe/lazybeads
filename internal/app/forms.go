@@ -54,6 +54,10 @@ func (m *Model) updateForm(msg tea.Msg) tea.Cmd {
 			}
 			m.formType = types[idx]
 		}
+	case 4:
+		var cmd tea.Cmd
+		m.formParent, cmd = m.formParent.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	return tea.Batch(cmds...)
@@ -64,6 +68,7 @@ func (m *Model) resetForm() {
 	m.formDesc.SetValue("")
 	m.formPriority = 2
 	m.formType = "feature"
+	m.formParent.SetValue("")
 	m.formFocus = 0
 	m.updateFormFocus()
 }
@@ -71,11 +76,14 @@ func (m *Model) resetForm() {
 func (m *Model) updateFormFocus() {
 	m.formTitle.Blur()
 	m.formDesc.Blur()
+	m.formParent.Blur()
 	switch m.formFocus {
 	case 0:
 		m.formTitle.Focus()
 	case 1:
 		m.formDesc.Focus()
+	case 4:
+		m.formParent.Focus()
 	}
 }
 
@@ -96,12 +104,14 @@ func (m *Model) submitForm() tea.Cmd {
 		}
 	}
 
+	parent := strings.TrimSpace(m.formParent.Value())
 	return func() tea.Msg {
 		task, err := m.client.Create(beads.CreateOptions{
 			Title:       title,
 			Description: m.formDesc.Value(),
 			Type:        m.formType,
 			Priority:    m.formPriority,
+			Parent:      parent,
 		})
 		return taskCreatedMsg{task: task, err: err}
 	}

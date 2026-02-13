@@ -211,11 +211,11 @@ func (m *Model) handleFormKeys(msg tea.KeyMsg) tea.Cmd {
 		return m.submitForm()
 
 	case key.Matches(msg, m.keys.Tab):
-		m.formFocus = (m.formFocus + 1) % 4
+		m.formFocus = (m.formFocus + 1) % 5
 		m.updateFormFocus()
 
 	case key.Matches(msg, m.keys.ShiftTab):
-		m.formFocus = (m.formFocus - 1 + 4) % 4
+		m.formFocus = (m.formFocus - 1 + 5) % 5
 		m.updateFormFocus()
 	}
 

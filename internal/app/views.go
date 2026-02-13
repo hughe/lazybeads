@@ -313,6 +313,12 @@ func (m *Model) updateDetailContent() {
 	b.WriteString(ui.DetailValueStyle.Render(t.Type))
 	b.WriteString("\n")
 
+	if t.Parent != "" {
+		b.WriteString(ui.DetailLabelStyle.Render("Parent:"))
+		b.WriteString(ui.DetailValueStyle.Render(t.Parent))
+		b.WriteString("\n")
+	}
+
 	if t.Assignee != "" {
 		b.WriteString(ui.DetailLabelStyle.Render("Assignee:"))
 		b.WriteString(ui.DetailValueStyle.Render(t.Assignee))
@@ -464,6 +470,15 @@ func (m Model) viewForm() string {
 		focusIndicator = " <"
 	}
 	b.WriteString(typeLabel + typeValue + focusIndicator + "\n\n")
+
+	// Parent field
+	parentLabel := ui.FormLabelStyle.Render("Parent:")
+	parentStyle := ui.FormInputStyle
+	if m.formFocus == 4 {
+		parentStyle = ui.FormInputFocusedStyle
+	}
+	parentInput := parentStyle.Width(m.width - 20).Render(m.formParent.View())
+	b.WriteString(parentLabel + "\n" + parentInput + "\n\n")
 
 	// Help
 	b.WriteString("\n")
