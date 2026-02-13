@@ -104,6 +104,7 @@ type CreateOptions struct {
 	Type        string // task, bug, feature, epic, chore
 	Priority    int    // 0-4
 	Labels      []string
+	Parent      string
 }
 
 // Create creates a new task
@@ -121,6 +122,9 @@ func (c *Client) Create(opts CreateOptions) (*models.Task, error) {
 	}
 	if len(opts.Labels) > 0 {
 		args = append(args, "-l", strings.Join(opts.Labels, ","))
+	}
+	if opts.Parent != "" {
+		args = append(args, "--parent", opts.Parent)
 	}
 
 	out, err := exec.Command(c.bdCmd, args...).Output()
@@ -191,6 +195,27 @@ func (c *Client) Close(id string, reason string) error {
 	}
 
 	return nil
+}
+
+// ListEpics returns up to limit most recent epics
+func (c *Client) ListEpics(limit int) ([]models.Task, error) {
+	args := []string{"list", "--type", "epic", "--status", "open", "--json"}
+
+	out, err := exec.Command(c.bdCmd, args...).Output()
+	if err != nil {
+		return nil, fmt.Errorf("bd list epics failed: %w", err)
+	}
+
+	var tasks []models.Task
+	if err := json.Unmarshal(out, &tasks); err != nil {
+		return nil, fmt.Errorf("failed to parse bd list output: %w", err)
+	}
+
+	if limit > 0 && len(tasks) > limit {
+		tasks = tasks[:limit]
+	}
+
+	return tasks, nil
 }
 
 // Delete removes a task

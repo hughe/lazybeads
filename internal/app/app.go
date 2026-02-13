@@ -92,7 +92,11 @@ type Model struct {
 	formDesc     textinput.Model
 	formPriority int
 	formType     string
-	formFocus    int
+	formParent       textinput.Model
+	formParentEpics  []models.Task
+	formParentIdx    int
+	formParentManual bool
+	formFocus        int
 	editing      bool
 	editingID    string
 
@@ -156,6 +160,11 @@ func New(client *beads.Client, cfg *config.Config) Model {
 	formDesc.Placeholder = "Add details, context, or acceptance criteria (optional)"
 	formDesc.CharLimit = 1000
 
+	formParent := textinput.New()
+	formParent.Prompt = ""
+	formParent.Placeholder = "Enter parent task ID (optional, e.g. project-123)"
+	formParent.CharLimit = 100
+
 	var customCmds []config.CustomCommand
 	if cfg != nil {
 		customCmds = cfg.CustomCommands
@@ -180,6 +189,7 @@ func New(client *beads.Client, cfg *config.Config) Model {
 		searchInput:     searchInput,
 		formTitle:       formTitle,
 		formDesc:        formDesc,
+		formParent:      formParent,
 		formPriority:    2,
 		formType:        "feature",
 		customCommands:  customCmds,
@@ -322,6 +332,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Tick(statusFlashDuration, func(t time.Time) tea.Msg {
 				return clearStatusMsg{}
 			}))
+		}
+
+	case epicsLoadedMsg:
+		if msg.err == nil {
+			m.formParentEpics = msg.epics
 		}
 
 	case clearStatusMsg:
@@ -480,6 +495,7 @@ func (m *Model) updateSizes() {
 	}
 	m.formTitle.Width = formWidth
 	m.formDesc.Width = formWidth
+	m.formParent.Width = formWidth
 
 	// Update help viewport size
 	// Help view: title (2 lines) + content + help bar (1 line)

@@ -313,6 +313,12 @@ func (m *Model) updateDetailContent() {
 	b.WriteString(ui.DetailValueStyle.Render(t.Type))
 	b.WriteString("\n")
 
+	if t.Parent != "" {
+		b.WriteString(ui.DetailLabelStyle.Render("Parent:"))
+		b.WriteString(ui.DetailValueStyle.Render(t.Parent))
+		b.WriteString("\n")
+	}
+
 	if t.Assignee != "" {
 		b.WriteString(ui.DetailLabelStyle.Render("Assignee:"))
 		b.WriteString(ui.DetailValueStyle.Render(t.Assignee))
@@ -464,6 +470,56 @@ func (m Model) viewForm() string {
 		focusIndicator = " <"
 	}
 	b.WriteString(typeLabel + typeValue + focusIndicator + "\n\n")
+
+	// Parent field
+	parentLabel := ui.FormLabelStyle.Render("Parent:")
+	parentBoxStyle := ui.FormInputStyle
+	if m.formFocus == 4 {
+		parentBoxStyle = ui.FormInputFocusedStyle
+	}
+	if m.formParentManual {
+		parentInput := parentBoxStyle.Width(m.width - 20).Render(m.formParent.View())
+		b.WriteString(parentLabel + "\n" + parentInput + "\n\n")
+	} else {
+		var listContent strings.Builder
+		focused := m.formFocus == 4
+		noneStyle := ui.HelpDescStyle
+		if m.formParentIdx == 0 {
+			noneStyle = ui.HelpKeyStyle
+		}
+		prefix := "  "
+		if m.formParentIdx == 0 && focused {
+			prefix = "> "
+		}
+		listContent.WriteString(prefix + noneStyle.Render("(none)") + "\n")
+		for i, epic := range m.formParentEpics {
+			style := ui.HelpDescStyle
+			if m.formParentIdx == i+1 {
+				style = ui.HelpKeyStyle
+			}
+			prefix = "  "
+			if m.formParentIdx == i+1 && focused {
+				prefix = "> "
+			}
+			label := fmt.Sprintf("%s  %s", epic.ID, epic.Title)
+			if len(label) > m.width-28 && m.width > 32 {
+				label = label[:m.width-31] + "..."
+			}
+			listContent.WriteString(prefix + style.Render(label) + "\n")
+		}
+		manualStyle := ui.HelpDescStyle
+		manualIdx := len(m.formParentEpics) + 1
+		if m.formParentIdx == manualIdx {
+			manualStyle = ui.HelpKeyStyle
+		}
+		prefix = "  "
+		if m.formParentIdx == manualIdx && focused {
+			prefix = "> "
+		}
+		listContent.WriteString(prefix + manualStyle.Render("(enter manually)"))
+		parentBox := parentBoxStyle.Width(m.width - 20).Render(listContent.String())
+		b.WriteString(parentLabel + "\n" + parentBox + "\n\n")
+	}
 
 	// Help
 	b.WriteString("\n")
