@@ -473,41 +473,52 @@ func (m Model) viewForm() string {
 
 	// Parent field
 	parentLabel := ui.FormLabelStyle.Render("Parent:")
-	b.WriteString(parentLabel + "\n")
+	parentBoxStyle := ui.FormInputStyle
+	if m.formFocus == 4 {
+		parentBoxStyle = ui.FormInputFocusedStyle
+	}
 	if m.formParentManual {
-		parentStyle := ui.FormInputStyle
-		if m.formFocus == 4 {
-			parentStyle = ui.FormInputFocusedStyle
-		}
-		parentInput := parentStyle.Width(m.width - 20).Render(m.formParent.View())
-		b.WriteString(parentInput + "\n\n")
+		parentInput := parentBoxStyle.Width(m.width - 20).Render(m.formParent.View())
+		b.WriteString(parentLabel + "\n" + parentInput + "\n\n")
 	} else {
+		var listContent strings.Builder
 		focused := m.formFocus == 4
-		// Option 0: (none)
 		noneStyle := ui.HelpDescStyle
-		if m.formParentIdx == 0 && focused {
-			noneStyle = ui.SelectedTaskStyle
+		if m.formParentIdx == 0 {
+			noneStyle = ui.HelpKeyStyle
 		}
-		b.WriteString("  " + noneStyle.Render("(none)") + "\n")
-		// Epic options
+		prefix := "  "
+		if m.formParentIdx == 0 && focused {
+			prefix = "> "
+		}
+		listContent.WriteString(prefix + noneStyle.Render("(none)") + "\n")
 		for i, epic := range m.formParentEpics {
 			style := ui.HelpDescStyle
+			if m.formParentIdx == i+1 {
+				style = ui.HelpKeyStyle
+			}
+			prefix = "  "
 			if m.formParentIdx == i+1 && focused {
-				style = ui.SelectedTaskStyle
+				prefix = "> "
 			}
 			label := fmt.Sprintf("%s  %s", epic.ID, epic.Title)
-			if len(label) > m.width-24 && m.width > 28 {
-				label = label[:m.width-27] + "..."
+			if len(label) > m.width-28 && m.width > 32 {
+				label = label[:m.width-31] + "..."
 			}
-			b.WriteString("  " + style.Render(label) + "\n")
+			listContent.WriteString(prefix + style.Render(label) + "\n")
 		}
-		// Manual entry option
 		manualStyle := ui.HelpDescStyle
-		if m.formParentIdx == len(m.formParentEpics)+1 && focused {
-			manualStyle = ui.SelectedTaskStyle
+		manualIdx := len(m.formParentEpics) + 1
+		if m.formParentIdx == manualIdx {
+			manualStyle = ui.HelpKeyStyle
 		}
-		b.WriteString("  " + manualStyle.Render("(enter manually)") + "\n")
-		b.WriteString("\n")
+		prefix = "  "
+		if m.formParentIdx == manualIdx && focused {
+			prefix = "> "
+		}
+		listContent.WriteString(prefix + manualStyle.Render("(enter manually)"))
+		parentBox := parentBoxStyle.Width(m.width - 20).Render(listContent.String())
+		b.WriteString(parentLabel + "\n" + parentBox + "\n\n")
 	}
 
 	// Help
